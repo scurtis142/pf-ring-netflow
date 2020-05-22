@@ -24,8 +24,8 @@ struct netflow_table* netflow_table_init (void) {
 
 
 /* Returns 1 if success 0 if failure */
-int get_netflow_k_v (const char *_p, int len, netflow_key_t *key, netflow_value_t *value) {
-   const unsigned char *p = (const unsigned char *)_p;
+int get_netflow_k_v (const unsigned char *_p, int len, netflow_key_t *key, netflow_value_t *value) {
+   const unsigned char *p = _p;
 
    p += 12;//skip to type
 

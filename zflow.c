@@ -67,6 +67,9 @@ u_int64_t prev_ns = 0;
 u_int64_t threshold_min = 1500, threshold_max = 2500; /* TODO parameters */
 u_int64_t threshold_min_count = 0, threshold_max_count = 0;
 
+/* Netflow table */
+struct netflow_table *n_table;
+
 volatile u_int64_t *pulse_timestamp_ns;
 
 /* ******************************** */
@@ -144,6 +147,8 @@ void print_stats() {
     
   fprintf(stderr, "=========================\n\n");
 
+  netflow_table_export_to_file (n_table, "/tmp/netflow.csv");
+
   lastPkts = nPkts, lastDrops = nDrops, lastBytes = nBytes;
   lastTime.tv_sec = endTime.tv_sec, lastTime.tv_usec = endTime.tv_usec;
 }
@@ -213,6 +218,9 @@ void *packet_consumer_thread(void *user) {
   int i, n;
 #endif
 
+  netflow_key_t key;
+  netflow_value_t value;
+
   if (bind_core >= 0)
     bind2core(bind_core);
 
@@ -232,6 +240,9 @@ void *packet_consumer_thread(void *user) {
       if (unlikely(verbose))
         print_packet(buffers[0]);
 
+      if (get_netflow_k_v (pfring_zc_pkt_buff_data(buffers[0], zq), buffers[0]->len, &key, &value)) {
+         netflow_table_insert(n_table,  &key, &value);
+      }
       numPkts++;
       numBytes += buffers[0]->len + 24; /* 8 Preamble + 4 CRC + 12 IFG */
     }
@@ -243,6 +254,9 @@ void *packet_consumer_thread(void *user) {
           print_packet(buffers[i]);
 
       for (i = 0; i < n; i++) {
+        if (get_netflow_k_v (pfring_zc_pkt_buff_data(buffers[i], zq), buffers[i]->len, &key, &value)) {
+           netflow_table_insert(n_table,  &key, &value);
+        }
         numPkts++;
         numBytes += buffers[i]->len + 24; /* 8 Preamble + 4 CRC + 12 IFG */
       }
@@ -364,6 +378,8 @@ int main(int argc, char* argv[]) {
     goto cleanup;
   }
 
+  n_table = netflow_table_init();
+
   for (i = 0; i < BURST_LEN; i++) { 
 
     buffers[i] = pfring_zc_get_packet_handle(zc);
@@ -429,6 +445,8 @@ int main(int argc, char* argv[]) {
 cleanup:
 
   pfring_zc_destroy_cluster(zc);
+  netflow_table_print_stats(n_table);
+  netflow_table_export_to_file(n_table, "/tmp/netflow.csv");
 
   return rc;
 }

@@ -36,15 +36,15 @@ CFLAGS     = -Wall -Wno-unused-function -Wno-format-truncation -O2  ${INCLUDE}  
 PFPROGS   = 
 
 ifneq (-D HAVE_PF_RING_ZC,)
-	PFPROGS += zcount 
+	PFPROGS += zflow 
 endif
 
 TARGETS   =  ${PFPROGS}
 
 all: ${TARGETS}
 
-zcount: zcount.o ${LIBPFRING} Makefile
-	${CC} ${CFLAGS} zcount.o ${LIBS} -o $@
+zflow: zflow.o ${LIBPFRING} Makefile
+	${CC} ${CFLAGS} zflow.o ${LIBS} -o $@
 
 install:
 ifneq (-D HAVE_PF_RING_ZC,)

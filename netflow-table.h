@@ -37,7 +37,7 @@ struct netflow_table {
 };
 
 /* Functions */
-int get_netflow_k_v (const char *_p, int len, netflow_key_t *key, netflow_value_t *value);
+int get_netflow_k_v (const unsigned char *_p, int len, netflow_key_t *key, netflow_value_t *value);
 struct netflow_table* netflow_table_init (void);
 void netflow_table_insert (struct netflow_table *table, netflow_key_t *key, netflow_value_t *value);
 /* void netflow_table_free (struct netflow_table *table); */
