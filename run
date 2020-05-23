@@ -1,0 +1,2 @@
+#! /bin/bash
+./zflow -i zc:enp3s0
